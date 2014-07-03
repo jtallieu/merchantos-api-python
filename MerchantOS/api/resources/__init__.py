@@ -46,7 +46,8 @@ class ResourceAccessor(object):
         Get specific pages
         """
         log.debug("Getting Page")
-        _query = {"offset": offset}
+        _query = {"offset": offset, "limit": limit}
+        
         _query.update(query)
         result =  self._connection.get(self._url, _query)
         return [result] if isinstance(result, dict) else result
@@ -84,6 +85,7 @@ class ResourceAccessor(object):
                     yield self._klass(self._connection, self._url, res, self._parent)
                 
                 offset = offset + max_per_call
+                
                 
             # If the response was empty - we are done
             except EmptyResponseWarning:
