@@ -35,10 +35,7 @@ class ResourceAccessor(object):
             self._klass = ResourceObject
             
         # Work around for option values URL being incorrect
-        if resource_name == "OptionValues":
-            self._url = "/options/values"
-        else:
-            self._url = self.__resource_name
+        self._url = self.__resource_name
             
          
     def __get_page(self, offset, limit, query={}):
@@ -104,6 +101,15 @@ class ResourceAccessor(object):
             return None
     
     
+    def create(self, properties, opts={}):
+        try:
+            result = self._connection.create(self._url, properties, name=self.__resource_name)
+            print result
+            return self._klass(self._connection, self._url, result, self._parent)
+        except:
+            return None
+        pass
+    
     def get_count(self, query={}):
         
         if query:
@@ -159,7 +165,10 @@ class ResourceObject(object):
         
         self._parent = parent
         self._connection = connection
-        #self._url = "%s/%s" % (url, self.id)
+        
+        _name = "%s%s" % (url[0].lower(), url[1:])
+        self._url = "%s/%s" % (url, self._fields["%sID" % _name])
+        log.debug("Resource Object URL: %s" % self._url)
         
         
     def __getattr__(self, attrname):
@@ -233,10 +242,6 @@ class ResourceObject(object):
     def get_url(self):
         return self._url
     
-    def create(self, data):
-        log.info("Creating %s" % self.get_url())
-        
-    
     def save(self):
         """
         Save any updates and set the fields to the values received 
@@ -249,7 +254,9 @@ class ResourceObject(object):
             results = self._connection.update(self.get_url(), self._updates)
             self._updates.clear()
             self._fields = results
-                     
+    
+    def delete(self):
+        return self._connection.delete(self.get_url(), )            
         
     def __repr__(self):
         return str(self._fields)
