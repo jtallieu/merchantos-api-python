@@ -146,7 +146,7 @@ class Connection():
         """
         Make a PUT request to save updates
         """
-        url = "%s%s" % (self.base_url, url)
+        url = "%s/%s.json" % (self.resource_base_url, url)
         log.debug("PUT %s" % (url))
         self.__connection.connect()
         
@@ -177,6 +177,77 @@ class Connection():
             raise HTTPException("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
         
         return result
+    
+    def delete(self, url, name=None):
+        resource = url if not name else name
+        url = "%s/%s.json" % (self.resource_base_url, url)
+        log.debug("DELETE %s" % (url))
+        self.__connection.connect()
+        
+        put_headers = {"Content-Type": "application/json"}
+        put_headers.update(self.__headers)
+        request = self.__connection.request("DELETE", url, None, put_headers)
+        response = self.__connection.getresponse()
+        data = response.read()
+        self.__connection.close()
+        
+        log.debug("DELETE %s status %d" % (url,response.status))
+        log.debug("OUTPUT: %s" % data)
+        
+        result = {}
+        if response.status == 200:
+            result = simplejson.loads(data)
+        
+        elif response.status == 204:
+            raise EmptyResponseWarning("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
+        
+        elif response.status == 404:
+            log.debug("%s returned 404 status" % url)
+            raise HTTPException("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
+        
+        elif response.status >= 400:
+            _result = simplejson.loads(data)
+            log.debug("OUTPUT %s" % _result)
+            raise HTTPException("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
+        
+        return result
+    
+        
+    
+    def create(self, url, properties, name=""):
+        resource = url if not name else name
+        url = "%s/%s.json" % (self.resource_base_url, url)
+        log.debug("POST %s" % (url))
+        log.debug("Creating %s" % pformat(properties))
+        self.__connection.connect()
+        
+        put_headers = {"Content-Type": "application/json"}
+        put_headers.update(self.__headers)
+        request = self.__connection.request("POST", url, simplejson.dumps(properties), put_headers)
+        response = self.__connection.getresponse()
+        data = response.read()
+        self.__connection.close()
+        
+        log.debug("POST %s status %d" % (url,response.status))
+        log.debug("OUTPUT: %s" % data)
+        
+        result = {}
+        if response.status == 200:
+            result = simplejson.loads(data)
+        
+        elif response.status == 204:
+            raise EmptyResponseWarning("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
+        
+        elif response.status == 404:
+            log.debug("%s returned 404 status" % url)
+            raise HTTPException("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
+        
+        elif response.status >= 400:
+            _result = simplejson.loads(data)
+            log.debug("OUTPUT %s" % _result)
+            raise HTTPException("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
+        
+        return result[resource]
     
     
     def __repr__(self):
