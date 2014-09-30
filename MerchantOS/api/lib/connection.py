@@ -102,11 +102,11 @@ class Connection():
             if response.status == 200:
                 result = simplejson.loads(data)
                 log.debug("attributes %s" % data)
-                if not int(result["@attributes"]["count"]):
-                    raise EmptyResponseWarning("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
+                #if not int(result["@attributes"]["count"]):
+                #    raise EmptyResponseWarning("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
                 
             elif response.status == 204:
-                c
+                raise EmptyResponseWarning("%d %s @ https://%s%s" % (response.status, response.reason, self.host, url))
             
             elif response.status == 503:
                 # Wait a minute
